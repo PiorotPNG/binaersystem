@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fallakte: Zugangsfehler im Rechenzentrum</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#F1F4F8;color:#2C2C2A;margin:0;padding:16px;line-height:1.5;font-size:16px}
+main{max-width:560px;margin:0 auto}
+h1{font-size:24px;line-height:1.25;margin:4px 0 8px}
+p{margin:0 0 12px}
+.card{background:#FFFFFF;border:1px solid #D3D1C7;border-radius:12px;padding:14px;margin:0 0 12px}
+.lab{font-size:14px;color:#5F5E5A;margin:0}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;font-size:34px;font-weight:700;letter-spacing:.08em;background:#0B1F1A;color:#5DCAA5;border-radius:8px;padding:2px 14px}
+input{font:inherit;font-size:20px;width:96px;padding:8px 10px;border:2px solid #9AA5B1;border-radius:8px;background:#FFFFFF;color:#2C2C2A}
+input.ok{border-color:#0F6E56;background:#E1F5EE}input.no{border-color:#A32D2D;background:#FCEBEB}
+.st{font-size:15px;min-width:90px}
+button{font:inherit;font-size:17px;padding:12px 22px;border:1px solid #9AA5B1;border-radius:10px;background:#FFFFFF;color:#2C2C2A;cursor:pointer}
+button.main{background:#185FA5;border-color:#185FA5;color:#FFFFFF}
+button:focus-visible,input:focus-visible{outline:3px solid #185FA5;outline-offset:2px}
+#win{border-color:#0F6E56}
+#win h2,#done h2{font-size:20px;margin:0 0 8px}
+h3{font-size:18px;margin:16px 0 6px}
+#done{border-color:#EF9F27;background:#FAEEDA;margin-top:12px}
+svg{width:100%;height:auto;display:block;margin:8px 0}
+.slot{fill:#C3CFDC;stroke:#8FA3B8}
+.hit{fill:#EF9F27}
+.on .hit{fill:#1D9E75;transition:fill .6s .8s}
+@media (prefers-reduced-motion:no-preference){.hit{animation:pulse 1s ease-in-out 2}}
+@keyframes pulse{50%{opacity:.35}}
+.led{fill:#E24B4A;transition:fill .6s .8s}.on .led{fill:#1D9E75}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+</style>
+</head>
+<body>
+<main>
+<h1>Fallakte: Zugangsfehler im Rechenzentrum</h1>
+<p>Auf dem Kontrollbildschirm standen nur drei Folgen aus Nullen und Einsen. Sie nennen den Fehlerort in der Reihenfolge Raum, Rack und Slot. Wandle sie in Dezimalzahlen um und finde die Stelle, an der der Fehler steckt.</p>
+
+<div class="card"><p class="lab">Raum</p><div class="row"><span class="code">0100</span><input id="a0" inputmode="numeric" aria-label="Raum als Dezimalzahl" placeholder="?"><span class="st" id="s0"></span></div></div>
+<div class="card"><p class="lab">Rack</p><div class="row"><span class="code">1011</span><input id="a1" inputmode="numeric" aria-label="Rack als Dezimalzahl" placeholder="?"><span class="st" id="s1"></span></div></div>
+<div class="card"><p class="lab">Slot</p><div class="row"><span class="code">1101</span><input id="a2" inputmode="numeric" aria-label="Slot als Dezimalzahl" placeholder="?"><span class="st" id="s2"></span></div></div>
+<p><button class="main" id="check">Prüfen</button> <button id="reset">Zurücksetzen</button></p>
+
+
+<section class="card" id="win" hidden aria-live="polite">
+<h2>Zugang wiederhergestellt</h2>
+<p>Der Fehler steckt in Raum 4, Rack 11, Slot 13. Dort wurde die Zugangskontrolle neu gestartet.</p>
+<svg id="rack" viewBox="0 0 300 220" role="img" aria-label="Rack mit 16 Slots, Slot 13 leuchtet grün, daneben ein Kartenleser mit grünem Lämpchen"><title>Rack 11 mit Slot 13</title></svg>
+<h3>Zusatzaufgabe</h3>
+<p>Der Server in Slot 13 meldet seine Adresse in Binär. Wie lautet die IP-Adresse in Dezimal?</p>
+<p class="mono">11000000.10101000.00000100.00001101</p>
+<div class="row"><input id="ip" style="width:200px" inputmode="decimal" aria-label="IP-Adresse dezimal" placeholder="z. B. 10.0.0.1"><button id="ipc">Prüfen</button><span class="st" id="ips"></span></div>
+</section>
+<section class="card" id="done" hidden aria-live="polite"><h2>Geschafft!</h2><p>Beide Aufgaben sind gelöst. Der Zugang zum Rechenzentrum funktioniert wieder.</p><button id="again">Feuerwerk noch einmal</button></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),ans=[4,11,13];
+const ns='http://www.w3.org/2000/svg',r=$('rack');
+function mk(t,a,txt){const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!==undefined)e.textContent=txt;r.appendChild(e);return e}
+mk('rect',{x:20,y:6,width:130,height:208,rx:6,fill:'#2C2C2A'});
+for(let i=0;i<16;i++){const y=12+i*12.5,hit=i===12;mk('rect',{x:28,y,width:114,height:10,rx:2,class:hit?'hit':'slot'});mk('text',{x:34,y:y+8,'font-size':8,fill:hit?'#412402':'#2C2C2A','font-family':'system-ui,sans-serif'},'Slot '+(i+1))}
+mk('rect',{x:200,y:60,width:60,height:90,rx:10,fill:'#444441'});mk('circle',{cx:230,cy:82,r:8,class:'led'});mk('rect',{x:216,y:104,width:28,height:5,rx:1,fill:'#1A1A19'});mk('rect',{x:218,y:116,width:24,height:16,rx:2,fill:'#FFFFFF'});
+mk('text',{x:230,y:172,'text-anchor':'middle','font-size':11,fill:'#2C2C2A','font-family':'system-ui,sans-serif'},'Zutritt');
+let ipDone=false;
+function check(){let all=true;ans.forEach((a,i)=>{const inp=$('a'+i),v=inp.value.trim(),ok=v!==''&&Number(v)===a;
+inp.className=v===''?'':ok?'ok':'no';$('s'+i).textContent=v===''?'':ok?'richtig':'noch nicht';if(!ok)all=false});
+const w=$('win');if(all){w.hidden=false;w.classList.add('on');w.scrollIntoView({behavior:'smooth',block:'start'})}else{w.hidden=true;w.classList.remove('on');ipDone=false;$('done').hidden=true}}
+$('check').onclick=check;
+$('reset').onclick=()=>{ipDone=false;$('done').hidden=true;[0,1,2].forEach(i=>{$('a'+i).value='';$('a'+i).className='';$('s'+i).textContent=''});$('win').hidden=true;$('win').classList.remove('on');$('ip').value='';$('ips').textContent=''};
+$('ipc').onclick=()=>{const v=$('ip').value.replace(/\s/g,'');const ok=v==='192.168.4.13';if(ok&&!ipDone){ipDone=true;fireworks()}if(!ok){ipDone=false;$('done').hidden=true}$('ip').className=v===''?'':ok?'ok':'no';$('ips').textContent=v===''?'':ok?'richtig':'noch nicht'};
+
+const cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');cv.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:10';document.body.appendChild(cv);
+function fireworks(){const d=$('done');d.hidden=false;d.scrollIntoView({behavior:'smooth',block:'center'});
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+const c=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;c.setTransform(dpr,0,0,dpr,0,0);
+const P=[],cols=['#EF9F27','#E24B4A','#1D9E75','#378ADD','#D4537E','#FAC775'];
+const burst=(x,y)=>{const col=cols[Math.random()*cols.length|0];for(let i=0;i<48;i++){const a=Math.PI*2*i/48,s=1.5+Math.random()*3.2;P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,c:col})}};
+for(let i=0;i<7;i++)setTimeout(()=>burst(W*(.15+Math.random()*.7),H*(.15+Math.random()*.4)),i*420);
+const t0=performance.now();
+(function f(t){c.clearRect(0,0,W,H);for(let i=P.length-1;i>=0;i--){const p=P[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.vx*=.985;p.l-=.01;
+if(p.l<=0){P.splice(i,1);continue}c.globalAlpha=p.l;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,2.4,0,6.283);c.fill()}
+c.globalAlpha=1;if(t-t0<3600||P.length)requestAnimationFrame(f);else c.clearRect(0,0,W,H)})(t0)}
+$('again').onclick=fireworks;
+document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'){i.id==='ip'?$('ipc').click():check()}}));
+</script>
+</body>
+</html>
